@@ -1,5 +1,6 @@
-import express from 'express'
-import { users, posts } from './data/data.js'
+import express, { application } from 'express'
+// import { users, posts } from './data/data.js'
+import { getData, getId } from './ultis/constans.js'
 
 
 const app = express()
@@ -11,17 +12,17 @@ app.get('/', () => {
     res.send('Homepage')
 })
 
-app.get('/users/:id', (req, res) => {
-    const { id } = req.params
-    const user = users.find((item) => item.id === id)
-    if (user) {
-        res.status(200).json(user)
-    } else {
-        res.status(404).json({
-            message: 'User not found'
-        })
-    }
-})
+// app.get('/users/:id', (req, res) => {
+//     const { id } = req.params
+//     const user = users.find((item) => item.id === id)
+//     if (user) {
+//         res.status(200).json(user)
+//     } else {
+//         res.status(404).json({
+//             message: 'User not found'
+//         })
+//     }
+// })
 
 // console.log(Math.random().toString(36))
 
@@ -84,71 +85,208 @@ app.get('/users/:id', (req, res) => {
 //     }
 // })
 
-app.put('/posts/:postId', (req, res) => {
-    const { postId } = req.params
-    const { userId } = req.query
-    const { content, isPublic } = req.body
+// app.put('/posts/:postId', (req, res) => {
+//     const { postId } = req.params
+//     const { userId } = req.query
+//     const { content, isPublic } = req.body
 
-    const findPost = posts.find((item) => item.postId === postId)
-    const indexPost = posts.findIndex((item) => item.postId === postId)
-    if (findPost) {
-        const checkUser = findPost.userId === userId
+//     const findPost = posts.find((item) => item.postId === postId)
+//     const indexPost = posts.findIndex((item) => item.postId === postId)
+//     if (findPost) {
+//         const checkUser = findPost.userId === userId
+//         if (checkUser) {
+//             const updatePost = {
+//                 ...findPost,
+//                 content,
+//                 isPublic,
+//             }
+//             posts[indexPost] = updatePost
+//             res.status(200).json({
+//                 message: 'Update successfully'
+//             })
+//         } else {
+//             res.status(400).json({
+//                 message: 'User is incorrect'
+//             })
+//         }
+//     } else {
+//         res.status(404).json({
+//             message: 'post not found'
+//         })
+//     }
+// })
+
+// app.delete('/posts/:postId', (req, res) => {
+//     const { postId } = req.params
+//     const { userId } = req.query
+
+//     const findPost = posts.find((item) => item.postId === postId)
+//     console.log('findPost', findPost)
+//     const indexPost = posts.findIndex((item) => item.postId === postId)
+//     if (findPost) {
+//         const checkUser = findPost.userId === userId
+//         if (checkUser) {
+//             delete posts[indexPost]
+//             res.status(200).json({
+//                 message: 'Delete successfully'
+//             })
+//         } else {
+//             res.status(400).json({
+//                 message: 'User is incorrect'
+//             })
+//         }
+//     } else {
+//         res.status(404).json({
+//             message: 'post not found'
+//         })
+//     }
+// })
+
+
+// app.get('/posts', (req, res) => {
+//     const { isPublic } = req.query
+//     const listPost = posts.filter((item) => item.isPublic === !!isPublic)
+//     res.status(200).send({
+//         data: listPost,
+//         total: listPost.length
+//     })
+// })
+
+app.post('/users', async (req, res) => {
+    const { userName } = req.body
+    console.log('userName', userName)
+    try {
+        const data = await getData('users')
+        const checkUser = data.find((item) => item.userName === userName)
         if (checkUser) {
-            const updatePost = {
-                ...findPost,
-                content,
-                isPublic,
+            throw new Error('User exist')
+        }
+        data.push({
+            id: `US${Date.parse(new Date) / 1000}`,
+            userName,
+        })
+        res.status(200).send({
+            message: 'Successfully',
+            status: 200,
+        })
+    } catch (error) {
+        console.log(err)
+        res.status(405).send({
+            message: err.message,
+            status: 405,
+        })
+    }
+    // fetch('http://localhost:3000/users').then((rs) => {
+    //     return rs.json()
+    // }).then((data) => {
+    //     const checkUser = data.find((item) => item.userName === userName)
+    //     if (checkUser) {
+    //         throw new Error('User exist')
+    //     }
+    //     data.push({
+    //         id: `US${Date.parse(new Date) / 1000}`,
+    //         userName,
+    //     })
+
+    //     res.status(200).send({
+    //         message: 'Successfully',
+    //         status: 200,
+    //     })
+    // }).catch(err => {
+    //     console.log(err)
+    //     res.status(405).send({
+    //         message: err.message,
+    //         status: 405,
+    //     })
+    // })
+})
+
+app.post('/posts', async (req, res) => {
+    const { authorId } = req.query
+    const { content } = req.body
+    try {
+        const data = await getData('posts')
+        const newData = {
+            id: `PS${getId()}`,
+            content,
+            authorId,
+        }
+        data.push(newData)
+        res.status(200).send({
+            message: 'Successfully',
+            data: newData,
+        })
+    } catch (error) {
+        res.status(500).send({
+            message: 'Internet server error',
+            status: 500,
+        })
+    }
+})
+
+app.put('/posts/:postId', async (req, res) => {
+    const { postId } = req.params
+    const { authorId } = req.query
+    const { content } = req.body
+    try {
+        const data = await getData('posts')
+        const findPost = data.find((item) => item.id === postId)
+        const indexPost = data.findIndex((item) => item.postId === postId)
+        if (findPost) {
+            const checkUser = findPost.authorId === authorId
+            if (checkUser) {
+                const updatePost = {
+                    ...findPost,
+                    content,
+                }
+                data[indexPost] = updatePost
+                res.status(200).json({
+                    message: 'Update successfully'
+                })
+            } else {
+                throw new Error('User is incorrect')
             }
-            posts[indexPost] = updatePost
-            res.status(200).json({
-                message: 'Update successfully'
-            })
         } else {
-            res.status(400).json({
-                message: 'User is incorrect'
-            })
+            throw new Error('post not found')
         }
-    } else {
-        res.status(404).json({
-            message: 'post not found'
+    } catch (error) {
+        res.status(405).send({
+            message: error.message,
+            status: 405,
         })
     }
 })
 
-app.delete('/posts/:postId', (req, res) => {
+app.post('/comments/:postId', async (req, res) => {
     const { postId } = req.params
-    const { userId } = req.query
-
-    const findPost = posts.find((item) => item.postId === postId)
-    console.log('findPost', findPost)
-    const indexPost = posts.findIndex((item) => item.postId === postId)
-    if (findPost) {
-        const checkUser = findPost.userId === userId
-        if (checkUser) {
-            delete posts[indexPost]
-            res.status(200).json({
-                message: 'Delete successfully'
-            })
-        } else {
-            res.status(400).json({
-                message: 'User is incorrect'
-            })
+    const { authorId } = req.query
+    const { content } = req.body
+    try {
+        const data = await getData('posts')
+        const checkPost = data.find((item) => item.postId = postId)
+        if (!checkPost) {
+            throw new Error('post not found')
         }
-    } else {
-        res.status(404).json({
-            message: 'post not found'
+        if (checkPost.authorId === authorId) {
+            throw new Error('user can not comment to this post')
+        }
+        const newData = {
+            id: `CMT${getId()}`,
+            postId,
+            content,
+            authorId
+        }
+        data.push(newData)
+        res.status(200).send({
+            message: 'cmt successfully',
+            status: 200,
+        })
+    } catch (error) {
+        res.status(405).send({
+            message: error.message,
+            status: 405,
         })
     }
-})
-
-
-app.get('/posts', (req, res) => {
-    const { isPublic } = req.query
-    const listPost = posts.filter((item) => item.isPublic === !!isPublic)
-    res.status(200).send({
-        data: listPost,
-        total: listPost.length
-    })
 })
 
 
