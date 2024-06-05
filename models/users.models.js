@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import UserSchema from "../ultis/UserSchema.js"
+import UserSchema from "../utils/UserSchema.js"
 
 const UserModel = mongoose.model('users', UserSchema)
 

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import PostSchema from "../ultis/PostSchema.js";
+import PostSchema from "../utils/PostSchema.js";
 
 
 const PostModel = mongoose.model('posts', PostSchema)

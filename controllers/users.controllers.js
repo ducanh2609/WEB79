@@ -1,4 +1,8 @@
 import { createUser, findOneUser, getAllUserDB, getOneUserDB } from "../models/users.models.js"
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+
+
 
 export const getAllUser = async (req, res) => {
     try {
@@ -58,21 +62,45 @@ export const updateUser = async (req, res) => {
 
 export const register = async (req, res) => {
     try {
-        const { username, password } = req.body
+        const { username, password, role } = req.body
         const findUser = await findOneUser({ username })
         if (findUser) {
             throw new Error('Username is exist')
         }
-        const createdUser = await createUser({ username, password })
+        const salt = await bcrypt.genSalt(10)
+        const hashPassword = await bcrypt.hash(password, salt)
+        const createdUser = await createUser({ username, password: hashPassword, role: role || [] })
         if (createdUser) {
             res.status(200).send({
                 message: 'Created',
-                data: createdUser,
             })
         }
     } catch (error) {
         res.status(500).send({
             error: error.message
+        })
+    }
+}
+
+export const login = async (req, res) => {
+    try {
+        const { username, password } = req.body
+        const user = await findOneUser({ username })
+        if (!user) {
+            throw new Error('User not found')
+        }
+        const isMatchPassword = await bcrypt.compare(password, user.password)
+        if (!isMatchPassword) {
+            throw new Error('User or password is not incorrect')
+        }
+        const { _id } = user
+        const token = jwt.sign({ _id, username }, process.env.JWT_SECRET_KEY)
+        res.status(200).send({
+            token,
+        })
+    } catch (error) {
+        res.send({
+            message: error.message
         })
     }
 }

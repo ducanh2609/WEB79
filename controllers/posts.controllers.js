@@ -50,7 +50,7 @@ export const updatePost = async (req, res) => {
 
 export const getAdminPage = async (req, res) => {
     try {
-        const { userId } = req.query
+        const { userId } = req
         const findUser = await getOneUserDB(userId)
 
         res.status(200).send({

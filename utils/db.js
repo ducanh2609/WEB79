@@ -5,7 +5,7 @@ dotenv.config()
 
 const URI = `mongodb+srv://${process.env.BD_USERNAME}:${process.env.BD_PASSWORD}@testdatabase.eg0demb.mongodb.net/`
 
-const connectBd = async () => {
+const connectDB = async () => {
     try {
         await mongoose.connect(URI)
         console.log('Conneted!');
@@ -14,5 +14,5 @@ const connectBd = async () => {
     }
 }
 
-export default connectBd
+export default connectDB
 
