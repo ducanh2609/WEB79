@@ -3,8 +3,8 @@ import UserSchema from "../utils/UserSchema.js"
 
 const UserModel = mongoose.model('users', UserSchema)
 
-export const getAllUserDB = () => {
-    return UserModel.find()
+export const getAllUserDB = (skip, limit) => {
+    return UserModel.find().skip(skip).limit(limit).sort({ username: -1 })
 }
 
 export const getOneUserDB = (id) => {
@@ -18,3 +18,5 @@ export const findOneUser = (condition) => {
 export const createUser = (body) => {
     return UserModel.create(body)
 }
+
+export default UserModel

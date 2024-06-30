@@ -20,12 +20,12 @@ const UserSchema = new mongoose.Schema({
     },
 })
 
-UserSchema.path('username').validate((value) => {
-    if (value.length < 8) {
-        this.invalidate('username', 'Username phải lớn 8 kí tự')
-    }
-    return true
-})
+// UserSchema.path('username').validate((value) => {
+//     if (value.length < 8) {
+//         this.invalidate('username', 'Username phải lớn 8 kí tự')
+//     }
+//     return true
+// })
 
 
 export default UserSchema

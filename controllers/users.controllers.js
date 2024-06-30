@@ -1,15 +1,21 @@
-import { createUser, findOneUser, getAllUserDB, getOneUserDB } from "../models/users.models.js"
+import UserModel, { createUser, findOneUser, getAllUserDB, getOneUserDB } from "../models/users.models.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 
 
 export const getAllUser = async (req, res) => {
+    const { pageSize = 10, page = 1 } = req.query
     try {
-        const allUser = await getAllUserDB()
+        const total = await UserModel.countDocuments()
+        const totalPage = Math.ceil(total / pageSize)
+        const skip = (page - 1) * pageSize
+        const users = await getAllUserDB(skip, pageSize)
         res.status(200).send({
-            users: allUser,
-            total: allUser.length,
+            listUsers: users,
+            total,
+            totalPage,
+            currentPage: +page,
         })
     } catch (error) {
         res.send({
