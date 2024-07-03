@@ -11,6 +11,7 @@ import { login, register } from './controllers/users.controllers.js'
 import { Authentication, Authorization } from './middlewares/auths.middlewares.js'
 import { getAdminPage } from './controllers/posts.controllers.js'
 import { createFile } from './models/files.models.js'
+import todoRouter from './routes/todos.routes.js'
 
 
 const app = express()
@@ -82,6 +83,8 @@ app.post('/uploadmultiple/:userId', uploadImage.array('images', 12), async (req,
 app.use(Authentication)
 app.use('/users', userRouter)
 app.use('/posts', postRouter)
+app.use('/todos', todoRouter)
+
 
 
 app.get('/admin', Authorization, getAdminPage)

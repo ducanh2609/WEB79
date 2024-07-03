@@ -78,7 +78,7 @@ export const register = async (req, res) => {
         const createdUser = await createUser({ username, password: hashPassword, role: role || [] })
         if (createdUser) {
             res.status(200).send({
-                message: 'Created',
+                user: createdUser,
             })
         }
     } catch (error) {
@@ -102,6 +102,7 @@ export const login = async (req, res) => {
         const { _id } = user
         const token = jwt.sign({ _id, username }, process.env.JWT_SECRET_KEY)
         res.status(200).send({
+            username,
             token,
         })
     } catch (error) {
