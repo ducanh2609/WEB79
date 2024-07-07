@@ -1,9 +1,10 @@
 import express from 'express'
+import http from 'http'
 import cors from 'cors'
 import connectDB from './utils/db.js'
 import multer from 'multer'
 import bodyParser from 'body-parser'
-
+import { Server } from 'socket.io'
 
 import userRouter from './routes/users.routes.js'
 import postRouter from './routes/posts.routes.js'
@@ -12,12 +13,40 @@ import { Authentication, Authorization } from './middlewares/auths.middlewares.j
 import { getAdminPage } from './controllers/posts.controllers.js'
 import { createFile } from './models/files.models.js'
 import todoRouter from './routes/todos.routes.js'
-
+import { createChat } from './controllers/chats.controllers.js'
+import chatRouter from './routes/chats.routes.js'
 
 const app = express()
+const server = http.createServer(app)
 const PORT = 8080
 app.use(cors())
 app.use(express.json())
+// socket
+const socketIo = new Server(server, {
+    cors: {
+        origin: '*',
+    },
+})
+
+socketIo.on("connection", (socket) => { ///Handle khi có connect từ client tới
+    console.log("New client connected " + socket.id);
+
+    socket.on("sendData", async function (data) { // Handle khi có sự kiện tên là sendDataClient từ phía client
+        console.log('data', data)
+        socketIo.emit("sendData", { data });// phát sự kiện  có tên sendDataServer cùng với dữ liệu tin nhắn từ phía server
+        await createChat(data)
+    })
+    socket.on("typing", function (data) {
+        console.log('type', data)
+        socketIo.emit("typing", { data });
+    })
+
+    socket.on("disconnect", () => {
+        console.log("Client disconnected"); // Khi client disconnect thì log ra terminal.
+    });
+});
+
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -84,6 +113,8 @@ app.use(Authentication)
 app.use('/users', userRouter)
 app.use('/posts', postRouter)
 app.use('/todos', todoRouter)
+app.use('/chats', chatRouter)
+
 
 
 
@@ -99,7 +130,7 @@ app.get('/admin', Authorization, getAdminPage)
 // Vào trang có quyền đặc biệt
 // + check điều kiện đặc biêt của ng dùng qua token
 
-app.listen(PORT, (err) => {
+server.listen(PORT, (err) => {
     if (err) throw new Error
     console.log(`Server run in http://localhost:${PORT}`);
     connectDB()

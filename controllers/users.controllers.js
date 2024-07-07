@@ -102,6 +102,7 @@ export const login = async (req, res) => {
         const { _id } = user
         const token = jwt.sign({ _id, username }, process.env.JWT_SECRET_KEY)
         res.status(200).send({
+            userId: _id,
             username,
             token,
         })
